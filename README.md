@@ -1,29 +1,34 @@
-Logger - Logging singleton for Godot Engine
-===========================================
+# Logger - Logging singleton for Godot Engine
 
-The *Logger* class is a GDScript singleton that provides a logging API for
-projects developed with [Godot Engine](https://godotengine.org).
+The _Logger_ class is a GDScript singleton that provides a logging API for projects developed with [Godot Engine](https://godotengine.org).
 
-Usage
------
+## Usage
 
-Copy the `logger.gd` file into your project folder, and define it as an autoloaded
-singleton in your project's settings (e.g. with the name *Logger*):
+Copy the `Logger.gd` file into your project folder, and define it as an autoloaded singleton in your project's settings (Project > Project Settings > AutoLoad), with the name `Logger`. The methods of the API can then be accessed from any other script via the `Logger` singleton:
+
 ```
-Logger="*res://logger.gd"
+Logger.info('There is a snake in my boot!')
+Logger.warn('Alpaca mismatch!')
 ```
 
-The methods of the API can then be accessed from any other script via the *Logger*
-singleton:
+### Modules
+
+Can define a module for better scope control and finer controls
+
 ```
-  Logger.warn('alpaca mismatch!')
-  Logger.info('reticulating splines...', mymodule)
+Logger.add_module('Entity')
+Logger.info('Reticulating splines...', 'Entity')
 ```
 
-Read the code for details about the API, it's extensively documented.
+### Log files
 
-Licensing
----------
+Remember to enable logging to files in your project settings (Project > Project Settings > General > Logging > File Logging). If you're on macOS, you're file will output somewhere like
+
+```
+~/Library/Application Support/Godot/app_userdata/<PROJECT_NAME>/logs
+```
+
+## Licensing
 
 The Logger class and all other files of this repository are distributed under the
 MIT license (see the LICENSE.md file).

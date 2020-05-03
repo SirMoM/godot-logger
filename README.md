@@ -13,11 +13,19 @@ Logger.warn('Alpaca mismatch!')
 
 ### Modules
 
-Can define a module for better scope control and finer controls
+Can define a module for better scope control and finer controls. The default module is `main` if not specified.
 
 ```
 Logger.add_module('Entity')
 Logger.info('Reticulating splines...', 'Entity')
+```
+
+### Error Codes
+
+All logging levels can also optionally include an [error code](https://docs.godotengine.org/en/stable/classes/class_@globalscope.html?#enum-globalscope-error), which will be mapped to the corresponding error message as of Godot 3.2
+
+```
+Logger.error('Failed to rotate the albatross', 'main', ERR_INVALID_DATA)
 ```
 
 ### Log files

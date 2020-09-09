@@ -4,7 +4,7 @@
 #
 # Upstream repo: https://github.com/KOBUGE-Games/godot-logger
 
-extends Node  # Needed to work as a singleton
+extends Node # Needed to work as a singleton
 
 signal logged
 signal module_added
@@ -66,7 +66,6 @@ const error_messages = {
 ## Inner classes  ##
 ##================##
 
-
 class Logfile:
 	# TODO: Godot doesn't support docstrings for inner classes, GoDoIt (GH-1320)
 	# """Class for log files that can be shared between various modules."""
@@ -94,14 +93,14 @@ class Logfile:
 
 	func get_write_mode():
 		if not file.file_exists(path):
-			return File.WRITE  # create
+			return File.WRITE # create
 		else:
-			return File.READ_WRITE  # append
+			return File.READ_WRITE # append
 
 	func validate_path(path):
 		"""Validate the path given as argument, making it possible to write to
 	the designated file or folder. Returns whether the path is valid."""
-		if ! (path.is_abs_path() or path.is_rel_path()):
+		if !(path.is_abs_path() or path.is_rel_path()):
 			print("[ERROR] [logger] The given path '%s' is not valid." % path)
 			return false
 		var dir = Directory.new()
@@ -301,6 +300,7 @@ const MUTE = 5
 const STRATEGY_MUTE = 0
 const STRATEGY_PRINT = 1
 const STRATEGY_FILE = 2
+const STRATEGY_PRINT_AND_FILE = 3
 const STRATEGY_MEMORY = 4
 const MAX_STRATEGY = STRATEGY_MEMORY * 2 - 1
 
@@ -335,6 +335,9 @@ var default_configfile_path = "user://%s.cfg" % PLUGIN_NAME
 # e.g. "[INFO ] [main] The young alpaca started growing a goatie."
 var output_format = "[{LVL}] [{MOD}]{ERR} {MSG}"
 
+# Holds the name of the debug module for easy usage across all logging functions.
+var default_module_name = "main"
+
 # Specific to STRATEGY_MEMORY
 var max_memory_size = 30
 var memory_buffer = []
@@ -353,7 +356,7 @@ var modules = {}
 ##=============##
 
 
-func put(level, message, module = "main", error_code = -1):
+func put(level, message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with the given logging level."""
 
 	var module_ref = get_module(module)
@@ -385,27 +388,27 @@ func put(level, message, module = "main", error_code = -1):
 # -------------------------------
 
 
-func trace(message, module = "main", error_code = -1):
+func trace(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level TRACE."""
 	put(TRACE, message, module, error_code)
 
 
-func debug(message, module = "main", error_code = -1):
+func debug(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level DEBUG."""
 	put(DEBUG, message, module, error_code)
 
 
-func info(message, module = "main", error_code = -1):
+func info(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level INFO ."""
 	put(INFO, message, module, error_code)
 
 
-func warn(message, module = "main", error_code = -1):
+func warn(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level WARN."""
 	put(WARN, message, module, error_code)
 
 
-func error(message, module = "main", error_code = -1):
+func error(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level ERROR."""
 	put(ERROR, message, module, error_code)
 
@@ -439,7 +442,7 @@ func add_module(
 	return modules[name]
 
 
-func get_module(module = "main"):
+func get_module(module = default_module_name):
 	"""Retrieve the given module if it exists; if not, it will be created."""
 	if not modules.has(module):
 		info(
@@ -831,7 +834,7 @@ func _init():
 	add_logfile(default_logfile_path)
 	# Default modules
 	add_module(PLUGIN_NAME)  # needs to be instanced first
-	add_module("main")
+	add_module(default_module_name)
 	memory_buffer.resize(max_memory_size)
 
 

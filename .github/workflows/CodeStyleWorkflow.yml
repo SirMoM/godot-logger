@@ -60,15 +60,3 @@ jobs:
       - name: Format with gdformat
         run: |
           gdlint logger.gd
-  warn:
-    name: Lint warning
-    needs: lint # set needs only last job except this job
-    runs-on: ubuntu-latest
-    if: always() # set always
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v1
-        with:
-          status: failure
-        env:
-          if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure
-      - run: echo "::warning file=logger.gd::Linter failed!"

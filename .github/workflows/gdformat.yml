@@ -29,4 +29,4 @@ jobs:
         # The packages to install from Pip
           packages: 
             gdtoolkit
-      - run: python3 gdformat cat /github/workspace/logger.gd
+      - run: python3 gdformat /github/workspace/logger.gd

@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: gdformat
+name: Code style workflow
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -12,8 +12,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  enforce_code_style:
+  format:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -38,6 +37,38 @@ jobs:
         with:
           commit_message: Apply formatting changes
           branch: ${{ github.head_ref }}
-      - name: Lint with gdlint
+  
+  lint:
+    # continue-on-error: true
+    needs: [format]
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install gdtoolkit
+      - name: Format with gdformat
         run: |
           gdlint logger.gd
+  warn:
+    name: Lint warning
+    needs: lint # set needs only last job except this job
+    runs-on: ubuntu-latest
+    if: always() # set always
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v1
+        with:
+          status: failure
+        env:
+          if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure
+      - run: echo "::warning file=logger.gd::Linter failed!"

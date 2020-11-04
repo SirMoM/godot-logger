@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
-          with:
+        with:
           python-version: '3.x'
       - name: Install dependencies
-          run: |
+        run: |
           python -m pip install --upgrade pip
           pip install gdtoolkit
       - name: Format with gdformat
-          run: |
+        run: |
           gdformat logger.gd
           

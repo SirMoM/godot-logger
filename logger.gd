@@ -3,13 +3,13 @@
 # https://github.com/KOBUGE-Games/godot-logger/blob/master/LICENSE.md
 #
 # Upstream repo: https://github.com/KOBUGE-Games/godot-logger
+extends Node
 
-extends Node  # Needed to work as a singleton
+# Needed to work as a singleton
 
 ##================##
 ## Inner classes  ##
 ##================##
-
 
 class ExternalSink:
 	# Queue modes
@@ -24,27 +24,34 @@ class ExternalSink:
 	var buffer = PackedStringArray()
 	var buffer_idx = 0
 
+
 	func _init(_name, _queue_mode = QUEUE_MODES.NONE) -> void:
 		name = _name
 		queue_mode = _queue_mode
 
+
 	func flush_buffer():
 		"""Flush the buffer, i.e. write its contents to the target external sink."""
 		print("[ERROR] [logger] Using method which has to be overriden in your custom sink")
+
 
 	func write(output, level):
 		"""Write the string at the end of the sink (append mode), following
 		the queue mode."""
 		print("[ERROR] [logger] Using method which has to be overriden in your custom sink")
 
+
 	func set_queue_mode(new_mode):
 		queue_mode = new_mode
+
 
 	func get_queue_mode():
 		return queue_mode
 
+
 	func get_name():
 		return name
+
 
 	func get_config():
 		return {
@@ -59,20 +66,24 @@ class Logfile:
 	const FILE_BUFFER_SIZE = 30
 	var path = ""
 
+
 	func _init(_path, _queue_mode = QUEUE_MODES.NONE):
 		super(_path, _queue_mode)
 		if validate_path(_path):
 			path = _path
 		buffer.resize(FILE_BUFFER_SIZE)
 
+
 	func get_path():
 		return path
 
+
 	func get_write_mode():
 		if not FileAccess.file_exists(path):
-			return FileAccess.WRITE  # create
+			return FileAccess.WRITE # create
 		else:
-			return FileAccess.READ_WRITE  # append
+			return FileAccess.READ_WRITE # append
+
 
 	func validate_path(path):
 		"""Validate the path given as argument, making it possible to write to
@@ -98,27 +109,29 @@ class Logfile:
 				print("[INFO] [logger] Successfully created the '%s' directory." % base_dir)
 		return true
 
+
 	func flush_buffer():
 		"""Flush the buffer, i.e. write its contents to the target file."""
 		if buffer_idx == 0:
-			return  # Nothing to write
+			return # Nothing to write
 		var temp_file = _open_file(path)
 		if temp_file:
 			temp_file.seek_end()
 			for i in range(buffer_idx):
 				temp_file.store_line(buffer[i])
 			temp_file.close()
-			buffer_idx = 0  # We don't clear the memory, we'll just overwrite it
+			buffer_idx = 0 # We don't clear the memory, we'll just overwrite it
+
 
 	func write(output, level):
 		"""Write the string at the end of the file (append mode), following
 		the queue mode."""
 		var queue_action = queue_mode
 		if queue_action == QUEUE_MODES.SMART:
-			if level >= WARN:  # Don't queue warnings and errors
+			if level >= WARN: # Don't queue warnings and errors
 				queue_action = QUEUE_MODES.NONE
 				flush_buffer()
-			else:  # Queue the log, not important enough for "smart"
+			else: # Queue the log, not important enough for "smart"
 				queue_action = QUEUE_MODES.ALL
 
 		if queue_action == QUEUE_MODES.NONE:
@@ -136,11 +149,13 @@ class Logfile:
 			if buffer_idx >= FILE_BUFFER_SIZE:
 				flush_buffer()
 
+
 	func get_config():
 		return {
 			"path": get_path(),
 			"queue_mode": get_queue_mode(),
 		}
+
 
 	func _open_file(path):
 		var result = FileAccess.open(path, get_write_mode())
@@ -160,21 +175,24 @@ class Module:
 	var output_strategies = []
 	var external_sink = null
 
+
 	func _init(_name, _output_level, _output_strategies, _external_sink):
 		name = _name
 		set_output_level(_output_level)
 
-		if typeof(_output_strategies) == TYPE_INT:  # Only one strategy, use it for all
+		if typeof(_output_strategies) == TYPE_INT: # Only one strategy, use it for all
 			for i in range(0, LEVELS.size()):
 				output_strategies.append(_output_strategies)
 		else:
-			for strategy in _output_strategies:  # Need to force deep copy
+			for strategy in _output_strategies: # Need to force deep copy
 				output_strategies.append(strategy)
 
 		set_external_sink(_external_sink)
 
+
 	func get_name():
 		return name
+
 
 	func set_output_level(level):
 		"""Set the custom minimal level for the output of the module.
@@ -186,8 +204,10 @@ class Module:
 			return
 		output_level = level
 
+
 	func get_output_level():
 		return output_level
+
 
 	func set_common_output_strategy(output_strategy_mask):
 		"""Set the common output strategy mask for all levels of the module."""
@@ -197,13 +217,14 @@ class Module:
 		for i in range(0, LEVELS.size()):
 			output_strategies[i] = output_strategy_mask
 
+
 	func set_output_strategy(output_strategy_mask, level = -1):
 		"""Set the output strategy for the given level or (by default) all
 		levels of the module."""
 		if not output_strategy_mask in range(0, MAX_STRATEGY + 1):
 			print("[ERROR] [%s] The output strategy mask must be comprised between 0 and %d." % [PLUGIN_NAME, MAX_STRATEGY])
 			return
-		if level == -1:  # Set for all levels
+		if level == -1: # Set for all levels
 			for i in range(0, LEVELS.size()):
 				output_strategies[i] = output_strategy_mask
 		else:
@@ -212,18 +233,22 @@ class Module:
 				return
 			output_strategies[level] = output_strategy_mask
 
+
 	func get_output_strategy(level = -1):
 		if level == -1:
 			return output_strategies
 		else:
 			return output_strategies[level]
 
+
 	func set_external_sink(new_external_sink):
 		"""Set the external sink instance for the module."""
 		external_sink = new_external_sink
 
+
 	func get_external_sink():
 		return external_sink
+
 
 	func get_config():
 		return {
@@ -232,7 +257,6 @@ class Module:
 			"output_strategies": get_output_strategy(),
 			"external_sink": get_external_sink().get_config(),
 		}
-
 
 ##=============##
 ##  Constants  ##
@@ -329,7 +353,7 @@ var default_output_level = INFO
 # TODO: Find (or implement in Godot) a more clever way to achieve that
 
 var default_output_strategies = [STRATEGY_PRINT, STRATEGY_PRINT, STRATEGY_PRINT, STRATEGY_PRINT, STRATEGY_PRINT]
-var default_logfile_path = "user://%s.log" % ProjectSettings.get_setting("application/config/name")  # TODO @File
+var default_logfile_path = "user://%s.log" % ProjectSettings.get_setting("application/config/name") # TODO @File
 var default_configfile_path = "user://%s.cfg" % PLUGIN_NAME
 
 # e.g. "[INFO] [main] The young alpaca started growing a goatie."
@@ -351,8 +375,8 @@ var invalid_memory_cache = false
 
 # Holds default and custom modules and external sinks defined by the user
 # Default modules are initialized in _init via add_module
-var external_sinks = {}
-var modules = {}
+var external_sinks = { }
+var modules = { }
 
 ##=============##
 ##  Functions  ##
@@ -364,7 +388,7 @@ func put(level, message, module = default_module_name, error_code = -1):
 	var module_ref = get_module(module)
 	var output_strategy = module_ref.get_output_strategy(level)
 	if output_strategy == STRATEGY_MUTE or module_ref.get_output_level() > level:
-		return  # Out of scope
+		return # Out of scope
 
 	var output = format(output_format, level, module, message, error_code)
 
@@ -381,7 +405,6 @@ func put(level, message, module = default_module_name, error_code = -1):
 		if memory_idx >= max_memory_size:
 			memory_idx = 0
 			memory_first_loop = false
-
 
 # Helper functions for each level
 # -------------------------------
@@ -410,7 +433,6 @@ func warn(message, module = default_module_name, error_code = -1):
 func error(message, module = default_module_name, error_code = -1):
 	"""Log a message in the given module with level ERROR."""
 	put(ERROR, message, module, error_code)
-
 
 # Module management
 # -----------------
@@ -441,7 +463,6 @@ func get_modules():
 	"""Retrieve the dictionary containing all modules."""
 	return modules
 
-
 # Logfiles management
 # -------------------
 
@@ -451,17 +472,17 @@ func set_default_logfile_path(new_logfile_path, keep_old = false):
 	the optional keep_old argument, it will replace the logfile for all
 	modules which were configured for the previous logfile path."""
 	if new_logfile_path == default_logfile_path:
-		return  # Nothing to do
+		return # Nothing to do
 
 	var old_logfile = get_external_sink(default_logfile_path)
 	var new_logfile = null
-	if external_sinks.has(new_logfile_path):  # Already exists
+	if external_sinks.has(new_logfile_path): # Already exists
 		new_logfile = external_sinks[new_logfile_path]
-	else:  # Create a new logfile
+	else: # Create a new logfile
 		new_logfile = add_logfile(new_logfile_path)
 		external_sinks[new_logfile_path] = new_logfile
 
-	if not keep_old:  # Replace the old defaut logfile in all modules that used it
+	if not keep_old: # Replace the old defaut logfile in all modules that used it
 		for module in modules.values():
 			if module.get_external_sink() == old_logfile:
 				module.set_external_sink(new_logfile)
@@ -509,7 +530,6 @@ func flush_buffers():
 		external_sink.flush_buffer()
 		processed_external_sinks.append(external_sink)
 
-
 # Default output configuration
 # ----------------------------
 
@@ -520,7 +540,7 @@ func set_default_output_strategy(output_strategy_mask, level = -1):
 	if not output_strategy_mask in range(0, MAX_STRATEGY + 1):
 		error("The output strategy mask must be comprised between 0 and %d." % MAX_STRATEGY, PLUGIN_NAME)
 		return
-	if level == -1:  # Set for all levels
+	if level == -1: # Set for all levels
 		for i in range(0, LEVELS.size()):
 			default_output_strategies[i] = output_strategy_mask
 		info("The default output strategy mask was set to '%d' for all levels." % [output_strategy_mask], PLUGIN_NAME)
@@ -556,7 +576,6 @@ func get_default_output_level():
 	"""Get the default minimal level for the output of all modules without
 	a custom output level."""
 	return default_output_level
-
 
 # Output formatting
 # -----------------
@@ -621,7 +640,6 @@ func get_output_format():
 	"""Get the output string format."""
 	return output_format
 
-
 # Strategy "memory"
 # -----------------
 
@@ -673,9 +691,9 @@ func get_max_memory_size():
 func get_memory():
 	"""Get an array of the messages remembered following STRATEGY_MEMORY.
 	The messages are sorted from the oldest to the newest."""
-	if invalid_memory_cache:  # Need to recreate the cached ordered array
+	if invalid_memory_cache: # Need to recreate the cached ordered array
 		memory_cache = []
-		if not memory_first_loop:  # else those would be uninitialized
+		if not memory_first_loop: # else those would be uninitialized
 			for i in range(memory_idx, max_memory_size):
 				memory_cache.append(memory_buffer[i])
 		for i in range(0, memory_idx):
@@ -691,7 +709,6 @@ func clear_memory():
 	memory_first_loop = true
 	invalid_memory_cache = true
 
-
 # Configuration loading/saving
 # ----------------------------
 
@@ -701,7 +718,7 @@ const config_fields := {
 	default_logfile_path = "default_logfile_path",
 	max_memory_size = "max_memory_size",
 	external_sinks = "external_sinks",
-	modules = "modules"
+	modules = "modules",
 }
 
 
@@ -722,7 +739,7 @@ func save_config(configfile = default_configfile_path):
 	# External sink config
 	var external_sinks_arr = []
 	var sorted_keys = external_sinks.keys()
-	sorted_keys.sort()  # Sadly doesn't return the array, so we need to split it
+	sorted_keys.sort() # Sadly doesn't return the array, so we need to split it
 	for external_sink in sorted_keys:
 		external_sinks_arr.append(external_sinks[external_sink].get_config())
 	config.set_value(PLUGIN_NAME, config_fields.external_sinks, external_sinks_arr)
@@ -769,25 +786,27 @@ func load_config(configfile = default_configfile_path):
 
 	# Load external config and initialize them
 	flush_buffers()
-	external_sinks = {}
+	external_sinks = { }
 	add_logfile(default_logfile_path)
 	for logfile_cfg in config.get_value(PLUGIN_NAME, config_fields.external_sinks, []):
 		var logfile = Logfile.new(logfile_cfg["path"], logfile_cfg["queue_mode"])
 		external_sinks[logfile_cfg["path"]] = logfile
 
 	# Load modules config and initialize them
-	modules = {}
+	modules = { }
 	add_module(PLUGIN_NAME)
 	add_module(default_module_name)
 	for module_cfg in config.get_value(PLUGIN_NAME, config_fields.modules, []):
 		var module = Module.new(
-			module_cfg["name"], module_cfg["output_level"], module_cfg["output_strategies"], get_external_sink(module_cfg["external_sink"]["path"])
+			module_cfg["name"],
+			module_cfg["output_level"],
+			module_cfg["output_strategies"],
+			get_external_sink(module_cfg["external_sink"]["path"]),
 		)
 		modules[module_cfg["name"]] = module
 
 	info("Successfully loaded the config from '%s'." % configfile, PLUGIN_NAME)
 	return OK
-
 
 ##=============##
 ##  Callbacks  ##
@@ -798,7 +817,7 @@ func _init():
 	# Default logfile
 	add_logfile(default_logfile_path)
 	# Default modules
-	add_module(PLUGIN_NAME)  # needs to be instanced first
+	add_module(PLUGIN_NAME) # needs to be instanced first
 	add_module(default_module_name)
 	memory_buffer.resize(max_memory_size)
 
